@@ -1,20 +1,20 @@
 /*
  CTAssetsGroupViewController.m
- 
+
  The MIT License (MIT)
- 
+
  Copyright (c) 2013 Clement CN Tsang
- 
+
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
- 
+
  The above copyright notice and this permission notice shall be included in
  all copies or substantial portions of the Software.
- 
+
  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -22,7 +22,7 @@
  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.
- 
+
  */
 
 #import "CTAssetsPickerCommon.h"
@@ -68,7 +68,7 @@
         self.preferredContentSize = CTAssetPickerPopoverContentSize;
         [self addNotificationObserver];
     }
-    
+
     return self;
 }
 
@@ -103,7 +103,7 @@
     return YES;
 }
 
-- (NSUInteger)supportedInterfaceOrientations
+- (UIInterfaceOrientationMask)supportedInterfaceOrientations
 {
     return UIInterfaceOrientationMaskAllButUpsideDown;
 }
@@ -127,13 +127,13 @@
                                         target:self.picker
                                         action:@selector(dismiss:)];
     }
-    
+
     self.navigationItem.rightBarButtonItem =
     [[UIBarButtonItem alloc] initWithTitle:CTAssetsPickerControllerLocalizedString(@"Done")
                                      style:UIBarButtonItemStyleDone
                                     target:self.picker
                                     action:@selector(finishPickingAssets:)];
-    
+
     if (self.picker.alwaysEnableDoneButton)
         self.navigationItem.rightBarButtonItem.enabled = YES;
     else
@@ -159,26 +159,26 @@
         self.groups = [[NSMutableArray alloc] init];
     else
         [self.groups removeAllObjects];
-    
+
     ALAssetsFilter *assetsFilter = self.picker.assetsFilter;
-    
+
     ALAssetsLibraryGroupsEnumerationResultsBlock resultsBlock = ^(ALAssetsGroup *group, BOOL *stop)
     {
         if (group)
         {
             [group setAssetsFilter:assetsFilter];
-            
+
             BOOL shouldShowGroup;
-            
+
             if ([self.picker.delegate respondsToSelector:@selector(assetsPickerController:shouldShowAssetsGroup:)])
                 shouldShowGroup = [self.picker.delegate assetsPickerController:self.picker shouldShowAssetsGroup:group];
             else
                 shouldShowGroup = YES;
-            
+
             if (shouldShowGroup)
             {
                 [self.groups addObject:group];
-                
+
                 if ([self.picker.delegate respondsToSelector:@selector(assetsPickerController:isDefaultAssetsGroup:)])
                 {
                     if ([self.picker.delegate assetsPickerController:self.picker isDefaultAssetsGroup:group])
@@ -191,22 +191,22 @@
             [self reloadData];
         }
     };
-    
+
     ALAssetsLibraryAccessFailureBlock failureBlock = ^(NSError *error)
     {
         [self showNotAllowed];
     };
-    
+
     // Enumerate Camera roll first
     [self.picker.assetsLibrary enumerateGroupsWithTypes:ALAssetsGroupSavedPhotos
                                              usingBlock:resultsBlock
                                            failureBlock:failureBlock];
-    
+
     // Then all other groups
     NSUInteger type =
     ALAssetsGroupLibrary | ALAssetsGroupAlbum | ALAssetsGroupEvent |
     ALAssetsGroupFaces | ALAssetsGroupPhotoStream;
-    
+
     [self.picker.assetsLibrary enumerateGroupsWithTypes:type
                                              usingBlock:resultsBlock
                                            failureBlock:failureBlock];
@@ -218,12 +218,12 @@
 - (void)addNotificationObserver
 {
     NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
-    
+
     [center addObserver:self
                selector:@selector(assetsLibraryChanged:)
                    name:ALAssetsLibraryChangedNotification
                  object:nil];
-    
+
     [center addObserver:self
                selector:@selector(selectedAssetsChanged:)
                    name:CTAssetsPickerSelectedAssetsChangedNotification
@@ -244,18 +244,18 @@
     // Reload all groups
     if (notification.userInfo == nil)
         [self performSelectorOnMainThread:@selector(setupGroup) withObject:nil waitUntilDone:NO];
-    
+
     // Reload effected assets groups
     if (notification.userInfo.count > 0)
     {
         [self reloadAssetsGroupForUserInfo:notification.userInfo
                                        key:ALAssetLibraryUpdatedAssetGroupsKey
                                     action:@selector(updateAssetsGroupForURL:)];
-        
+
         [self reloadAssetsGroupForUserInfo:notification.userInfo
                                        key:ALAssetLibraryInsertedAssetGroupsKey
                                     action:@selector(insertAssetsGroupForURL:)];
-        
+
         [self reloadAssetsGroupForUserInfo:notification.userInfo
                                        key:ALAssetLibraryDeletedAssetGroupsKey
                                     action:@selector(deleteAssetsGroupForURL:)];
@@ -268,7 +268,7 @@
 - (void)reloadAssetsGroupForUserInfo:(NSDictionary *)userInfo key:(NSString *)key action:(SEL)selector
 {
     NSSet *URLs = [userInfo objectForKey:key];
-    
+
     for (NSURL *URL in URLs.allObjects)
         [self performSelectorOnMainThread:selector withObject:URL waitUntilDone:NO];
 }
@@ -278,16 +278,16 @@
     NSPredicate *predicate = [NSPredicate predicateWithBlock:^BOOL(ALAssetsGroup *group, NSDictionary *bindings){
         return [[group valueForProperty:ALAssetsGroupPropertyURL] isEqual:URL];
     }];
-    
+
     return [self.groups indexOfObject:[self.groups filteredArrayUsingPredicate:predicate].firstObject];
 }
 
 - (void)updateAssetsGroupForURL:(NSURL *)URL
 {
     ALAssetsLibraryGroupResultBlock resultBlock = ^(ALAssetsGroup *group){
-        
+
         NSUInteger index = [self.groups indexOfObject:group];
-        
+
         if (index != NSNotFound)
         {
             NSIndexPath *indexPath = [NSIndexPath indexPathForRow:index inSection:0];
@@ -299,27 +299,27 @@
             [self.tableView reloadRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationAutomatic];
         }
     };
-    
+
     [self.picker.assetsLibrary groupForURL:URL resultBlock:resultBlock failureBlock:nil];
 }
 
 - (void)insertAssetsGroupForURL:(NSURL *)URL
 {
     ALAssetsLibraryGroupResultBlock resultBlock = ^(ALAssetsGroup *group){
-        
+
         NSIndexPath *indexPath = [NSIndexPath indexPathForRow:self.groups.count inSection:0];
-        
+
         [self.tableView beginUpdates];
-        
+
         /* Re-apply the filter for inserted group */
         [group setAssetsFilter:self.picker.assetsFilter];
-        
+
         [self.groups addObject:group];
         [self.tableView insertRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationAutomatic];
-        
+
         [self.tableView endUpdates];
     };
-    
+
     [self.picker.assetsLibrary groupForURL:URL resultBlock:resultBlock failureBlock:nil];
 }
 
@@ -327,12 +327,12 @@
 {
     NSUInteger index = [self indexOfAssetsGroupWithURL:URL];
     NSIndexPath *indexPath = [NSIndexPath indexPathForRow:index inSection:0];
-    
+
     [self.tableView beginUpdates];
-    
+
     [self.groups removeObjectAtIndex:index];
     [self.tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationAutomatic];
-    
+
     [self.tableView endUpdates];
 }
 
@@ -342,9 +342,9 @@
 - (void)selectedAssetsChanged:(NSNotification *)notification
 {
     NSArray *selectedAssets = (NSArray *)notification.object;
-    
+
     [[self.toolbarItems objectAtIndex:1] setTitle:[self.picker toolbarTitle]];
-    
+
     [self.navigationController setToolbarHidden:(selectedAssets.count == 0) animated:YES];
 }
 
@@ -364,8 +364,8 @@
         [self showNoAssets];
     }
 }
-            
-            
+
+
 #pragma mark - Default Assets Group
 
 - (void)pushDefaultAssetsGroup:(ALAssetsGroup *)group
@@ -374,11 +374,11 @@
     {
         CTAssetsViewController *vc = [[CTAssetsViewController alloc] init];
         vc.assetsGroup = group;
-        
+
         self.navigationController.viewControllers = @[self, vc];
     }
 }
-    
+
 
 
 #pragma mark - Not allowed / No assets
@@ -425,14 +425,14 @@
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
     static NSString *CellIdentifier = @"Cell";
-    
+
     CTAssetsGroupViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
-    
+
     if (cell == nil)
         cell = [[CTAssetsGroupViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:CellIdentifier];
-    
+
     [cell bind:[self.groups objectAtIndex:indexPath.row] showNumberOfAssets:self.picker.showsNumberOfAssets];
-    
+
     return cell;
 }
 
@@ -443,8 +443,9 @@
 {
     CTAssetsViewController *vc = [[CTAssetsViewController alloc] init];
     vc.assetsGroup = [self.groups objectAtIndex:indexPath.row];
-    
+
     [self.navigationController pushViewController:vc animated:YES];
 }
 
 @end
+
