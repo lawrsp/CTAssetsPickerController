@@ -220,4 +220,25 @@
     return (picker.selectedAssets.count < 10 && asset.defaultRepresentation != nil);
 }
 
+- (BOOL)assetsPickerControllerIfSelectedAssetsCountBecomeMaximum:(CTAssetsPickerController *)picker {
+    if (picker.selectedAssets.count >= 10)
+    {
+        return YES;
+    } else {
+        return NO;
+    }
+    
+//    if (!asset.defaultRepresentation)
+//    {
+//        UIAlertView *alertView =
+//        [[UIAlertView alloc] initWithTitle:@"Attention"
+//                                   message:@"Your asset has not yet been downloaded to your device"
+//                                  delegate:nil
+//                         cancelButtonTitle:nil
+//                         otherButtonTitles:@"OK", nil];
+//        
+//        [alertView show];
+//    }
+}
+
 @end

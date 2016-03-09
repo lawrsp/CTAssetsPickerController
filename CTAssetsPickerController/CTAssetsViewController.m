@@ -54,7 +54,7 @@ NSString * const CTAssetsSupplementaryViewIdentifier = @"CTAssetsSupplementaryVi
 
 
 
-@interface CTAssetsViewController ()
+@interface CTAssetsViewController () <UIImagePickerControllerDelegate, UINavigationControllerDelegate>
 
 @property (nonatomic, weak) CTAssetsPickerController *picker;
 @property (nonatomic, strong) NSMutableArray *assets;
@@ -153,7 +153,33 @@ NSString * const CTAssetsSupplementaryViewIdentifier = @"CTAssetsSupplementaryVi
 
 - (void)setupToolbar
 {
-    self.toolbarItems = self.picker.toolbarItems;
+//    self.toolbarItems = self.picker.toolbarItems;
+    self.toolbarItems = @[
+                          [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:nil],
+                          [[UIBarButtonItem alloc] initWithTitle:@"拍照" style:UIBarButtonItemStylePlain target:self action:@selector(takePhoto)],
+                          [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:nil]
+                          ];
+    [[self navigationController] setToolbarHidden:NO];
+}
+
+- (void)takePhoto {
+    NSLog(@"拍照");
+    UIImagePickerController *pickerVC = [[UIImagePickerController alloc] init];
+    pickerVC.allowsEditing = NO;
+    pickerVC.sourceType = UIImagePickerControllerSourceTypeCamera;
+    pickerVC.delegate = self;
+    [self presentViewController:pickerVC animated:YES completion:^{
+        return;
+    }];
+    //    let ipc = UIImagePickerController()
+    //    ipc.allowsEditing = false
+    //    ipc.sourceType = UIImagePickerControllerSourceType.Camera
+    //    ipc.delegate = self
+    //    //self.presentViewController(ipc, animated: true, completion: nil)
+    //    self.presentViewController(ipc, animated: true) { () -> Void in
+    //
+    //        return
+    //    }
 }
 
 - (void)setupAssets
@@ -288,11 +314,28 @@ NSString * const CTAssetsSupplementaryViewIdentifier = @"CTAssetsSupplementaryVi
 
 - (void)selectedAssetsChanged:(NSNotification *)notification
 {
-    NSArray *selectedAssets = (NSArray *)notification.object;
+//    NSArray *selectedAssets = (NSArray *)notification.object;
     
-    [[self.toolbarItems objectAtIndex:1] setTitle:[self.picker toolbarTitle]];
-    
-    [self.navigationController setToolbarHidden:(selectedAssets.count == 0) animated:YES];
+//    [[self.toolbarItems objectAtIndex:1] setTitle:[self.picker toolbarTitle]];
+//    
+//    [self.navigationController setToolbarHidden:(selectedAssets.count == 0) animated:YES];
+    /**
+     *  修改对底部ToolBar的操作：不再隐藏，且选中张数未达最大值时显示拍照，达到最大值时显示最大值提示
+     *
+     */
+    if ([self.picker.delegate assetsPickerControllerIfSelectedAssetsCountBecomeMaximum:self.picker]) {
+        self.toolbarItems = @[
+                              [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:nil],
+                              [[UIBarButtonItem alloc] initWithTitle:@"已达最大张数" style:UIBarButtonItemStylePlain target:nil action:nil],
+                              [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:nil]
+                              ];
+    } else {
+        self.toolbarItems = @[
+                              [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:nil],
+                              [[UIBarButtonItem alloc] initWithTitle:@"拍照" style:UIBarButtonItemStylePlain target:self action:@selector(takePhoto)],
+                              [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:nil]
+                              ];
+    }
     
     // Reload assets for calling de/selectAsset method programmatically
     [self.collectionView reloadData];
@@ -512,6 +555,26 @@ NSString * const CTAssetsSupplementaryViewIdentifier = @"CTAssetsSupplementaryVi
     
     if ([self.picker.delegate respondsToSelector:@selector(assetsPickerController:didUnhighlightAsset:)])
         [self.picker.delegate assetsPickerController:self.picker didUnhighlightAsset:asset];
+}
+
+- (void)imageWriteDone {
+    [self reloadAssets];
+    [self.picker.selectedAssets addObject:self.assets.lastObject];
+    
+    [self reloadData];
+}
+
+- (void)image:(UIImage *)image didFinishSavingWithError:(NSError *)error contextInfo:(void *)contextInfo {
+    [self reloadAssets];
+    [self.picker.selectedAssets addObject:self.assets.lastObject];
+    [self reloadData];
+    [self selectedAssetsChanged:nil];
+}
+
+- (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary<NSString *,id> *)info {
+    UIImage *image = info[UIImagePickerControllerOriginalImage];
+    UIImageWriteToSavedPhotosAlbum(image, self, @selector(image:didFinishSavingWithError:contextInfo:), nil);
+    [picker dismissViewControllerAnimated:NO completion:nil];
 }
 
 

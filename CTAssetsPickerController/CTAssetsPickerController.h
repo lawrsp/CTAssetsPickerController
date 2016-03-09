@@ -157,6 +157,12 @@
 @optional
 
 /**
+ *  询问代理是否已选的assets数量达到最大值
+ */
+- (BOOL)assetsPickerControllerIfSelectedAssetsCountBecomeMaximum:(CTAssetsPickerController *)picker;
+
+
+/**
  *  Tells the delegate that the user cancelled the pick operation.
  *
  *  @param picker The controller object managing the assets picker interface.
