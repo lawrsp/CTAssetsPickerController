@@ -153,6 +153,9 @@ NSString * const CTAssetsSupplementaryViewIdentifier = @"CTAssetsSupplementaryVi
 
 - (void)setupToolbar
 {
+    /**
+     *  修改ToolBar的显示内容，不再显示张数，显示拍照按钮
+     */
 //    self.toolbarItems = self.picker.toolbarItems;
     self.toolbarItems = @[
                           [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:nil],
@@ -161,7 +164,7 @@ NSString * const CTAssetsSupplementaryViewIdentifier = @"CTAssetsSupplementaryVi
                           ];
     [[self navigationController] setToolbarHidden:NO];
 }
-
+///拍照
 - (void)takePhoto {
     NSLog(@"拍照");
     UIImagePickerController *pickerVC = [[UIImagePickerController alloc] init];
@@ -171,15 +174,6 @@ NSString * const CTAssetsSupplementaryViewIdentifier = @"CTAssetsSupplementaryVi
     [self presentViewController:pickerVC animated:YES completion:^{
         return;
     }];
-    //    let ipc = UIImagePickerController()
-    //    ipc.allowsEditing = false
-    //    ipc.sourceType = UIImagePickerControllerSourceType.Camera
-    //    ipc.delegate = self
-    //    //self.presentViewController(ipc, animated: true, completion: nil)
-    //    self.presentViewController(ipc, animated: true) { () -> Void in
-    //
-    //        return
-    //    }
 }
 
 - (void)setupAssets
