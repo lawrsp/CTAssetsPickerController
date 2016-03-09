@@ -317,18 +317,20 @@ NSString * const CTAssetsSupplementaryViewIdentifier = @"CTAssetsSupplementaryVi
      *  修改对底部ToolBar的操作：不再隐藏，且选中张数未达最大值时显示拍照，达到最大值时显示最大值提示
      *
      */
-    if ([self.picker.delegate assetsPickerControllerIfSelectedAssetsCountBecomeMaximum:self.picker]) {
-        self.toolbarItems = @[
-                              [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:nil],
-                              [[UIBarButtonItem alloc] initWithTitle:@"已达最大张数" style:UIBarButtonItemStylePlain target:nil action:nil],
-                              [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:nil]
-                              ];
-    } else {
-        self.toolbarItems = @[
-                              [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:nil],
-                              [[UIBarButtonItem alloc] initWithTitle:@"拍照" style:UIBarButtonItemStylePlain target:self action:@selector(takePhoto)],
-                              [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:nil]
-                              ];
+    if ([self.picker.delegate respondsToSelector:@selector(assetsPickerControllerIfSelectedAssetsCountBecomeMaximum:)]) {
+        if ([self.picker.delegate assetsPickerControllerIfSelectedAssetsCountBecomeMaximum:self.picker]) {
+            self.toolbarItems = @[
+                                  [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:nil],
+                                  [[UIBarButtonItem alloc] initWithTitle:@"已达最大张数" style:UIBarButtonItemStylePlain target:nil action:nil],
+                                  [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:nil]
+                                  ];
+        } else {
+            self.toolbarItems = @[
+                                  [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:nil],
+                                  [[UIBarButtonItem alloc] initWithTitle:@"拍照" style:UIBarButtonItemStylePlain target:self action:@selector(takePhoto)],
+                                  [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:nil]
+                                  ];
+        }
     }
     
     // Reload assets for calling de/selectAsset method programmatically
@@ -554,7 +556,6 @@ NSString * const CTAssetsSupplementaryViewIdentifier = @"CTAssetsSupplementaryVi
 - (void)imageWriteDone {
     [self reloadAssets];
     [self.picker.selectedAssets addObject:self.assets.lastObject];
-    
     [self reloadData];
 }
 
